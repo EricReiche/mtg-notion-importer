@@ -40,6 +40,10 @@ current_card = 0
 notion = Client(auth=os.environ["NOTION_API_KEY"],notion_version="2025-09-03",)
 
 
+DB_ID = os.environ["DATABASE_ID"]  # This must be the Notion database UUID from the URL
+db_obj = notion.databases.retrieve(database_id=DB_ID)  # OK with the new API [web:24]
+DATA_SOURCE_ID = db_obj["data_sources"][0]["id"]       # Use for queries only [web:49]
+
 # Add this function to get the most recent card from your Notion database
 def get_most_recent_card():
     res = notion.data_sources.query(
@@ -212,7 +216,7 @@ def get_card_by_scryfall_id(scryfall_id):
         try:
             existing_card = notion.data_sources.query(
                 **{
-                    "data_source_id": os.environ["DATA_SOURCE_ID"],
+                    "data_source_id": DATA_SOURCE_ID,
                     "filter": {
                         "property": "Scryfall ID",
                         "rich_text": {
@@ -334,7 +338,7 @@ def extract_keywords(oracle_text):
 
 def import_cards():
     global total_cards
-    notion = Client(auth=os.environ["NOTION_API_KEY"])
+    notion = Client(auth=os.environ["NOTION_API_KEY"],notion_version="2025-09-03",)
 
     # Prompt the user to choose whether to continue or start from the beginning
     user_input = input(
