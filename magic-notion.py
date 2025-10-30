@@ -15,7 +15,6 @@ from requests.exceptions import HTTPError
 import notion_client.errors
 import json
 from tenacity import retry, stop_after_attempt, wait_exponential
-import async_sync
 
 # Create the logs directory if it doesn't exist
 if not os.path.exists("logs"):
@@ -40,20 +39,25 @@ current_card = 0
 
 notion = Client(auth=os.environ["NOTION_API_KEY"])
 
+
 # Add this function to get the most recent card from your Notion database
 def get_most_recent_card():
+    # Replace this with the appropriate ID of your database
     database_id = os.environ["DATABASE_ID"]
 
-    results = async_sync.run_async_in_sync(notion.databases.query)(
-        database_id=database_id,
-        sort=[{
-            "property": "updated_at",
-            "direction": "descending"
-        }],
+    # Query the Notion database sorted by "updated_at" in descending order
+    results = notion.data_sources.query(
+        **{
+            "data_source_id": database_id,
+            "sort": {
+                "property": "updated_at",
+                "direction": "descending"
+            }
+        }
     ).get("results")
 
+    # Return the first result, which is the most recent card
     return results[0] if results else None
-
 
 
 @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=30))
@@ -216,12 +220,14 @@ def get_card_by_scryfall_id(scryfall_id):
     retries = 3
     for i in range(retries):
         try:
-            existing_card = async_sync.run_async_in_sync(notion.databases.query)(
-                database_id=os.environ["DATABASE_ID"],
-                filter={
-                    "property": "Scryfall ID",
-                    "rich_text": {
-                        "equals": scryfall_id
+            existing_card = notion.data_sources.query(
+                **{
+                    "data_source_id": os.environ["DATABASE_ID"],
+                    "filter": {
+                        "property": "Scryfall ID",
+                        "rich_text": {
+                            "equals": scryfall_id
+                        }
                     }
                 }
             ).get("results")
