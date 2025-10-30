@@ -37,26 +37,16 @@ load_dotenv()
 total_cards = 0
 current_card = 0
 
-notion = Client(auth=os.environ["NOTION_API_KEY"])
+notion = Client(auth=os.environ["NOTION_API_KEY"],notion_version="2025-09-03",)
 
 
 # Add this function to get the most recent card from your Notion database
 def get_most_recent_card():
-    # Replace this with the appropriate ID of your database
-    database_id = os.environ["DATABASE_ID"]
-
-    # Query the Notion database sorted by "updated_at" in descending order
-    results = notion.data_sources.query(
-        **{
-            "data_source_id": database_id,
-            "sort": {
-                "property": "updated_at",
-                "direction": "descending"
-            }
-        }
-    ).get("results")
-
-    # Return the first result, which is the most recent card
+    res = notion.data_sources.query(
+        data_source_id=DATA_SOURCE_ID,
+        sorts=[{"property": "updated_at", "direction": "descending"}],
+    )  # note: “sorts”, plural [web:49][web:21]
+    results = res.get("results", [])
     return results[0] if results else None
 
 
@@ -222,7 +212,7 @@ def get_card_by_scryfall_id(scryfall_id):
         try:
             existing_card = notion.data_sources.query(
                 **{
-                    "data_source_id": os.environ["DATABASE_ID"],
+                    "data_source_id": os.environ["DATA_SOURCE_ID"],
                     "filter": {
                         "property": "Scryfall ID",
                         "rich_text": {
