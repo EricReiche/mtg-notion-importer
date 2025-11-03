@@ -37,7 +37,7 @@ load_dotenv()
 total_cards = 0
 current_card = 0
 
-notion = Client(auth=os.environ["NOTION_API_KEY"],notion_version="2025-09-03",)
+notion = Client(auth=os.environ["NOTION_API_KEY"],notion_version="2025-09-03")
 
 
 DB_ID = os.environ["DATABASE_ID"]  # This must be the Notion database UUID from the URL
